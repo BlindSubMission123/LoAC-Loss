@@ -9,7 +9,7 @@ class LoAC(nn.Module):
         # Classes and mu cte
         self.n_classes = n_classes
 
-        # Suavidad raiz
+        # Smooth
         self.eps = 1e-6
 
         # Constants
@@ -60,14 +60,14 @@ class LoAC(nn.Module):
         normalizer = mag_label_sq.sum(dim=(1,2,3)).clamp(min=self.eps)
         return orient_loss.sum(dim=(1,2,3)) / normalizer
     
-    def MagnitudTerm(self, gx_pred, gy_pred, gx_lbl, gy_lbl):
-        # Only magnitud information
+    def MagnitudeTerm(self, gx_pred, gy_pred, gx_lbl, gy_lbl):
+        # Only magnitude information
         gx_pred = torch.abs(gx_pred)
         gy_pred = torch.abs(gy_pred)
         gx_lbl = torch.abs(gx_lbl)
         gy_lbl = torch.abs(gy_lbl)
 
-        # Normalized magnitud
+        # Normalized magnitude
         num = (gx_pred - gx_lbl).pow(2).sum(dim=(1,2,3)) + (gy_pred - gy_lbl).pow(2).sum(dim=(1,2,3))
         den = (gx_pred.pow(2) + gx_lbl.pow(2)).sum(dim=(1,2,3)) + (gy_pred.pow(2) + gy_lbl.pow(2)).sum(dim=(1,2,3)) + self.eps
         return num / den
@@ -87,9 +87,9 @@ class LoAC(nn.Module):
         gx_lbl_cen, gy_lbl_cen = self.Estimate_CEN_diff(lbl_k)
 
         # Magnitud
-        L_FWRD = self.MagnitudTerm(gx_pred, gy_pred, gx_lbl, gy_lbl)
-        L_DIAG = self.MagnitudTerm(gx_pred_diag, gy_pred_diag, gx_lbl_diag, gy_lbl_diag)
-        L_CEN = self.MagnitudTerm(gx_pred_cen, gy_pred_cen, gx_lbl_cen, gy_lbl_cen)
+        L_FWRD = self.MagnitudeTerm(gx_pred, gy_pred, gx_lbl, gy_lbl)
+        L_DIAG = self.MagnitudeTerm(gx_pred_diag, gy_pred_diag, gx_lbl_diag, gy_lbl_diag)
+        L_CEN = self.MagnitudeTerm(gx_pred_cen, gy_pred_cen, gx_lbl_cen, gy_lbl_cen)
         L_MAG = (L_FWRD + L_DIAG + L_CEN) /3
 
         # Orentation
