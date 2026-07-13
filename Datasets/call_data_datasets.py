@@ -15,6 +15,12 @@ def call_data_datasets(dataset, random_split_seed):
         val_percent = 0.20
         test_percent = 0.20
 
+    elif dataset == 'CellTracking':
+        batch_size = 8
+        train_percent = 0.60
+        val_percent = 0.20
+        test_percent = 0.20
+
     assert (train_percent + val_percent + test_percent) == 1
     print(f'Train percent:{train_percent}, validation percent:{val_percent}, batch:{batch_size}, para el dataset {dataset}')
 
