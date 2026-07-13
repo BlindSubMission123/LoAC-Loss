@@ -18,6 +18,7 @@ from Model.UNetBatchNorm import UNetBatchNorm
 # Directorios y datasets
 from Training.Segmentor_TRAIN import *
 from Datasets.DatasetPH2 import PH2_Loader
+from Datasets.DatasetCellTrackingChallenge import CellTracking_Loader
 from Datasets.call_data_datasets import call_data_datasets
 
 # Loss
@@ -27,6 +28,9 @@ from Losses.ABeDice import *
 from Losses.NAC_Loss import *
 from Losses.CrossEntropy import *
 from Losses.DiceForeground import *
+from Losses.FocalLoss import *
+from Losses.HDLoss import DiceHDLoss
+from Losses.BoundaryLoss import DiceBoundaryLoss
 
 ####################################################################
 #                        Diccionarios                              #
@@ -44,6 +48,9 @@ dict_loss = {
     'NAC': lambda: NAC_LossS(NUM_CLASS=2),
     'LoAC': lambda: LoAC(n_classes=2, mu=1,alpha=1),
     'ABeDice': lambda: ABeDice( n_classes=2, alpha=2, beta=3),
+    'FocalLoss': lambda: FocalLoss(),
+    'DiceBoundaryLoss': lambda: DiceBoundaryLoss(),
+    'DiceHDLoss': lambda: DiceHDLoss(),
     }
 
 # Folds
@@ -126,10 +133,17 @@ for key in dict_experimento:
                 #                        DataLoader                                #
                 ####################################################################
                 # Dataset
-                train_dataset = PH2_Loader(img_path=DICT_DATA_DATASET['PATH_TRAIN_IMG'], mask_path=DICT_DATA_DATASET['PATH_TRAIN_MASK'], indices=DICT_DATA_DATASET['INDICES_TRAIN'], transform=transform,
-                                            conjunto = "train")
-                val_dataset = PH2_Loader(img_path=DICT_DATA_DATASET['PATH_TRAIN_IMG'], mask_path=DICT_DATA_DATASET['PATH_TRAIN_MASK'], indices=DICT_DATA_DATASET['INDICES_VAL'], transform=False,
-                                    conjunto = "validation")
+                elif dataset == 'PH2':
+                    train_dataset = PH2_Loader(img_path=DICT_DATA_DATASET['PATH_TRAIN_IMG'], mask_path=DICT_DATA_DATASET['PATH_TRAIN_MASK'], indices=DICT_DATA_DATASET['INDICES_TRAIN'], transform=transform,
+                                                conjunto = "train")
+                    val_dataset = PH2_Loader(img_path=DICT_DATA_DATASET['PATH_TRAIN_IMG'], mask_path=DICT_DATA_DATASET['PATH_TRAIN_MASK'], indices=DICT_DATA_DATASET['INDICES_VAL'], transform=False,
+                                        conjunto = "validation")
+                
+                elif dataset == 'CellTracking':
+                    train_dataset = CellTracking_Loader(img_path=DICT_DATA_DATASET['PATH_TRAIN_IMG'], mask_path=DICT_DATA_DATASET['PATH_TRAIN_MASK'], indices=DICT_DATA_DATASET['INDICES_TRAIN'], transform=transform,
+                                                conjunto = "train")
+                    val_dataset = CellTracking_Loader(img_path=DICT_DATA_DATASET['PATH_TRAIN_IMG'], mask_path=DICT_DATA_DATASET['PATH_TRAIN_MASK'], indices=DICT_DATA_DATASET['INDICES_VAL'], transform=False,
+                                        conjunto = "validation")
                 
                 num_workers = 4
                 train_loader = DataLoader(train_dataset, batch_size=DICT_DATA_DATASET['BATCH_SIZE'], num_workers=num_workers, shuffle=True, pin_memory=True, persistent_workers=False)
