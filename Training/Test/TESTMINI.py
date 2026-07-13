@@ -9,6 +9,7 @@ from pytorch_lightning.loggers import CSVLogger
 from Test.Segmentator_TEST import *
 from Model.UNetBatchNorm import UNetBatchNorm
 from DatasetsFunctions.DatasetsClasses.DatasetPH2 import PH2_Loader
+from DatasetsFunctions.DatasetsClasses.DatasetCellTrackingChallenge import CellTracking_Loader
 from DatasetsFunctions.ManageDatasets.call_data_datasets import call_data_datasets
 
 ####################################################
@@ -62,6 +63,10 @@ for seed_initial_params in Seeds:
 
         if dataset == 'PH2':
             test_dataset = PH2_Loader(img_path=DICT_DATA_DATASET['PATH_TRAIN_IMG'], mask_path=DICT_DATA_DATASET['PATH_TRAIN_MASK'], indices=indices, transform=False, 
+                                    conjunto = "validation")
+            
+        elif dataset == 'CellTracking':
+            test_dataset = CellTracking_Loader(img_path=DICT_DATA_DATASET['PATH_TRAIN_IMG'], mask_path=DICT_DATA_DATASET['PATH_TRAIN_MASK'], indices=indices, transform=False, 
                                     conjunto = "validation")
             
         test_loader = DataLoader(test_dataset, batch_size=1, num_workers=4, shuffle=False, pin_memory=False, persistent_workers=True)

@@ -5,7 +5,7 @@ from Metricas.Metrics import *
 import pytorch_lightning as pl
 
 
-class Segmentator_TEST_mini(pl.LightningModule):
+class Segmentor_TEST_mini(pl.LightningModule):
     def __init__(self, model, model_type, save_dir=None):
         super().__init__()
         self.model = model
@@ -21,7 +21,7 @@ class Segmentator_TEST_mini(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         image = batch['image']
         y_true = batch['mask']
-        img_name = batch['name']  # <-- tu dataset debe devolver esto
+        img_name = batch['name']  
 
         y_pred = self.model(image)
 
@@ -29,7 +29,8 @@ class Segmentator_TEST_mini(pl.LightningModule):
         iou_score = iou(y_true, y_pred)
         presicion_score = precision(y_true, y_pred)
         recall_score = recall(y_true, y_pred)
-        hd95_score = HD_distance(y_true, y_pred)
+        ASSD_score = ASSD(y_true, y_pred)
+        Boundaryiou_score = boundary_iou(y_true, y_pred)
 
         metrics = {
             "image_name": img_name[0],  # batch_size=1
@@ -37,7 +38,8 @@ class Segmentator_TEST_mini(pl.LightningModule):
             "iou": iou_score,
             "precision": presicion_score,
             "recall": recall_score.detach().cpu().item(),
-            "hd95": hd95_score.detach().cpu().item(),
+            "assd": ASSD_score.detach().cpu().item(),
+            "boundaryiou": Boundaryiou_score.detach().cpu().item(),
         }
 
         self.test_outputs.append(metrics)
@@ -49,22 +51,25 @@ class Segmentator_TEST_mini(pl.LightningModule):
         dice = np.array([([x["dice"] for x in self.test_outputs])])
         iou = np.array([([x["iou"] for x in self.test_outputs])])
         precision = np.array([([x["precision"] for x in self.test_outputs])])
-        recall = np.array([([x["recall"] for x in self.test_outputs])])
-        hd95 = np.array([([x["hd95"] for x in self.test_outputs])])
+        recall = np.array([([x["recall"] for x in self.test_outputs])]))
+        assd = np.array([([x["assd"] for x in self.test_outputs])])
+        boundaryiou = np.array([([x["boundaryiou"] for x in self.test_outputs])])
 
         # -------- MEAN --------
         dice_mean = dice.mean()
         iou_mean = iou.mean()
         precision_mean = precision.mean()
         recall_mean = recall.mean()
-        hd95_mean = hd95.mean()
+        assd_mean = assd.mean()
+        boundaryiou_mean = boundaryiou.mean()
 
         # -------- STD --------
         dice_std = dice.std()
         iou_std = iou.std()
         precision_std = precision.std()
         recall_std = recall.std()
-        hd95_std = hd95.std()
+        assd_std = assd.std()
+        boundaryiou_std = boundaryiou.std()
 
         # -------- LOG (mantienes tu comportamiento actual) --------
 
@@ -80,8 +85,12 @@ class Segmentator_TEST_mini(pl.LightningModule):
         self.log("Test Recall Mean", recall_mean)
         self.log("Test Recall Std", recall_std)
 
-        self.log("Test HD95 Mean", hd95_mean)
-        self.log("Test HD95 Std", hd95_std)
+
+        self.log("Test ASSD Mean", assd_mean)
+        self.log("Test ASSD Std", assd_std)
+
+        self.log("Test BoundaryIoU Mean", boundaryiou_mean)
+        self.log("Test BoundaryIoU Std", boundaryiou_std)
 
         # -------- CSV POR IMAGEN --------
         if self.save_dir is not None:
